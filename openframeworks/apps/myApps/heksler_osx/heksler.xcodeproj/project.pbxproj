@@ -7,6 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E3879121AA624AA0027F17A /* jsoncpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3878E91AA624AA0027F17A /* jsoncpp.cpp */; };
+		9E3879131AA624AA0027F17A /* ofxJSONElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3878ED1AA624AA0027F17A /* ofxJSONElement.cpp */; };
+		9E3879141AA624AA0027F17A /* ofxTCPClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3878F51AA624AA0027F17A /* ofxTCPClient.cpp */; };
+		9E3879151AA624AA0027F17A /* ofxTCPManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3878F71AA624AA0027F17A /* ofxTCPManager.cpp */; };
+		9E3879161AA624AA0027F17A /* ofxTCPServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3878F91AA624AA0027F17A /* ofxTCPServer.cpp */; };
+		9E3879171AA624AA0027F17A /* ofxUDPManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3878FB1AA624AA0027F17A /* ofxUDPManager.cpp */; };
+		9E3879181AA624AA0027F17A /* tinyxml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3878FF1AA624AA0027F17A /* tinyxml.cpp */; };
+		9E3879191AA624AA0027F17A /* tinyxmlerror.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3879011AA624AA0027F17A /* tinyxmlerror.cpp */; };
+		9E38791A1AA624AA0027F17A /* tinyxmlparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3879021AA624AA0027F17A /* tinyxmlparser.cpp */; };
+		9E38791B1AA624AA0027F17A /* ofxXmlSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3879041AA624AA0027F17A /* ofxXmlSettings.cpp */; };
+		9E3879291AA625A50027F17A /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E3879281AA625A50027F17A /* libcurl.dylib */; };
+		9E38792B1AA62A7E0027F17A /* serversettings.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9E38792A1AA62A5B0027F17A /* serversettings.xml */; };
+		9E3879391AA65E4B0027F17A /* HttpFormManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E3879351AA65E4B0027F17A /* HttpFormManager.cpp */; };
 		9E8445031A9F888C00F3C32A /* ffmpeg in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9E8445011A9F887800F3C32A /* ffmpeg */; };
 		9E8683081AA5BFA200560567 /* fontstash.c in Sources */ = {isa = PBXBuildFile; fileRef = 9E8681AE1AA5BFA100560567 /* fontstash.c */; };
 		9E8683091AA5BFA200560567 /* stb_truetype.c in Sources */ = {isa = PBXBuildFile; fileRef = 9E8681B01AA5BFA100560567 /* stb_truetype.c */; };
@@ -210,6 +223,7 @@
 			dstPath = data;
 			dstSubfolderSpec = 7;
 			files = (
+				9E38792B1AA62A7E0027F17A /* serversettings.xml in CopyFiles */,
 				9E8683CD1AA5C54A00560567 /* settings.xml in CopyFiles */,
 				9E8683CE1AA5C54D00560567 /* Roboto-Gui.ttf in CopyFiles */,
 				9E8683CF1AA5C55000560567 /* gui.png in CopyFiles */,
@@ -240,6 +254,35 @@
 
 /* Begin PBXFileReference section */
 		9E13AEF81AA4A9F50073FEA8 /* cutfinder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cutfinder.h; sourceTree = "<group>"; };
+		9E3878E61AA624AA0027F17A /* json-forwards.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "json-forwards.h"; sourceTree = "<group>"; };
+		9E3878E71AA624AA0027F17A /* json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = json.h; sourceTree = "<group>"; };
+		9E3878E91AA624AA0027F17A /* jsoncpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsoncpp.cpp; sourceTree = "<group>"; };
+		9E3878EA1AA624AA0027F17A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		9E3878EC1AA624AA0027F17A /* ofxJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxJSON.h; sourceTree = "<group>"; };
+		9E3878ED1AA624AA0027F17A /* ofxJSONElement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxJSONElement.cpp; sourceTree = "<group>"; };
+		9E3878EE1AA624AA0027F17A /* ofxJSONElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxJSONElement.h; sourceTree = "<group>"; };
+		9E3878F31AA624AA0027F17A /* ofxNetwork.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxNetwork.h; sourceTree = "<group>"; };
+		9E3878F41AA624AA0027F17A /* ofxNetworkUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxNetworkUtils.h; sourceTree = "<group>"; };
+		9E3878F51AA624AA0027F17A /* ofxTCPClient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxTCPClient.cpp; sourceTree = "<group>"; };
+		9E3878F61AA624AA0027F17A /* ofxTCPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxTCPClient.h; sourceTree = "<group>"; };
+		9E3878F71AA624AA0027F17A /* ofxTCPManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxTCPManager.cpp; sourceTree = "<group>"; };
+		9E3878F81AA624AA0027F17A /* ofxTCPManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxTCPManager.h; sourceTree = "<group>"; };
+		9E3878F91AA624AA0027F17A /* ofxTCPServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxTCPServer.cpp; sourceTree = "<group>"; };
+		9E3878FA1AA624AA0027F17A /* ofxTCPServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxTCPServer.h; sourceTree = "<group>"; };
+		9E3878FB1AA624AA0027F17A /* ofxUDPManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxUDPManager.cpp; sourceTree = "<group>"; };
+		9E3878FC1AA624AA0027F17A /* ofxUDPManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxUDPManager.h; sourceTree = "<group>"; };
+		9E3878FF1AA624AA0027F17A /* tinyxml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxml.cpp; sourceTree = "<group>"; };
+		9E3879001AA624AA0027F17A /* tinyxml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyxml.h; sourceTree = "<group>"; };
+		9E3879011AA624AA0027F17A /* tinyxmlerror.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlerror.cpp; sourceTree = "<group>"; };
+		9E3879021AA624AA0027F17A /* tinyxmlparser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlparser.cpp; sourceTree = "<group>"; };
+		9E3879041AA624AA0027F17A /* ofxXmlSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxXmlSettings.cpp; sourceTree = "<group>"; };
+		9E3879051AA624AA0027F17A /* ofxXmlSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxXmlSettings.h; sourceTree = "<group>"; };
+		9E3879281AA625A50027F17A /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
+		9E38792A1AA62A5B0027F17A /* serversettings.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = serversettings.xml; sourceTree = "<group>"; };
+		9E3879331AA65E4B0027F17A /* fileUpload.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; path = fileUpload.php; sourceTree = "<group>"; };
+		9E3879341AA65E4B0027F17A /* HttpForm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HttpForm.h; sourceTree = "<group>"; };
+		9E3879351AA65E4B0027F17A /* HttpFormManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HttpFormManager.cpp; sourceTree = "<group>"; };
+		9E3879361AA65E4B0027F17A /* HttpFormManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HttpFormManager.h; sourceTree = "<group>"; };
 		9E8445011A9F887800F3C32A /* ffmpeg */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = ffmpeg; path = /usr/local/bin/ffmpeg; sourceTree = "<absolute>"; };
 		9E8681AE1AA5BFA100560567 /* fontstash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fontstash.c; sourceTree = "<group>"; };
 		9E8681AF1AA5BFA100560567 /* fontstash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fontstash.h; sourceTree = "<group>"; };
@@ -549,6 +592,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E3879291AA625A50027F17A /* libcurl.dylib in Frameworks */,
 				9E86837E1AA5BFA300560567 /* opencv_imgproc231d.lib in Frameworks */,
 				9E8683971AA5BFA300560567 /* libzlib.a in Frameworks */,
 				9E8683311AA5BFA200560567 /* opencv_flann.a in Frameworks */,
@@ -704,6 +748,145 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9E3878A31AA624A90027F17A /* ofxJSON */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878E21AA624AA0027F17A /* libs */,
+				9E3878EA1AA624AA0027F17A /* README.md */,
+				9E3878EB1AA624AA0027F17A /* src */,
+			);
+			name = ofxJSON;
+			path = ../../../addons/ofxJSON;
+			sourceTree = "<group>";
+		};
+		9E3878E21AA624AA0027F17A /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878E31AA624AA0027F17A /* jsoncpp */,
+			);
+			path = libs;
+			sourceTree = "<group>";
+		};
+		9E3878E31AA624AA0027F17A /* jsoncpp */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878E41AA624AA0027F17A /* include */,
+				9E3878E81AA624AA0027F17A /* src */,
+			);
+			path = jsoncpp;
+			sourceTree = "<group>";
+		};
+		9E3878E41AA624AA0027F17A /* include */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878E51AA624AA0027F17A /* json */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		9E3878E51AA624AA0027F17A /* json */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878E61AA624AA0027F17A /* json-forwards.h */,
+				9E3878E71AA624AA0027F17A /* json.h */,
+			);
+			path = json;
+			sourceTree = "<group>";
+		};
+		9E3878E81AA624AA0027F17A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878E91AA624AA0027F17A /* jsoncpp.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		9E3878EB1AA624AA0027F17A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878EC1AA624AA0027F17A /* ofxJSON.h */,
+				9E3878ED1AA624AA0027F17A /* ofxJSONElement.cpp */,
+				9E3878EE1AA624AA0027F17A /* ofxJSONElement.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		9E3878EF1AA624AA0027F17A /* ofxNetwork */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878F21AA624AA0027F17A /* src */,
+			);
+			name = ofxNetwork;
+			path = ../../../addons/ofxNetwork;
+			sourceTree = "<group>";
+		};
+		9E3878F21AA624AA0027F17A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878F31AA624AA0027F17A /* ofxNetwork.h */,
+				9E3878F41AA624AA0027F17A /* ofxNetworkUtils.h */,
+				9E3878F51AA624AA0027F17A /* ofxTCPClient.cpp */,
+				9E3878F61AA624AA0027F17A /* ofxTCPClient.h */,
+				9E3878F71AA624AA0027F17A /* ofxTCPManager.cpp */,
+				9E3878F81AA624AA0027F17A /* ofxTCPManager.h */,
+				9E3878F91AA624AA0027F17A /* ofxTCPServer.cpp */,
+				9E3878FA1AA624AA0027F17A /* ofxTCPServer.h */,
+				9E3878FB1AA624AA0027F17A /* ofxUDPManager.cpp */,
+				9E3878FC1AA624AA0027F17A /* ofxUDPManager.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		9E3878FD1AA624AA0027F17A /* ofxXmlSettings */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878FE1AA624AA0027F17A /* libs */,
+				9E3879031AA624AA0027F17A /* src */,
+			);
+			name = ofxXmlSettings;
+			path = ../../../addons/ofxXmlSettings;
+			sourceTree = "<group>";
+		};
+		9E3878FE1AA624AA0027F17A /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				9E3878FF1AA624AA0027F17A /* tinyxml.cpp */,
+				9E3879001AA624AA0027F17A /* tinyxml.h */,
+				9E3879011AA624AA0027F17A /* tinyxmlerror.cpp */,
+				9E3879021AA624AA0027F17A /* tinyxmlparser.cpp */,
+			);
+			path = libs;
+			sourceTree = "<group>";
+		};
+		9E3879031AA624AA0027F17A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9E3879041AA624AA0027F17A /* ofxXmlSettings.cpp */,
+				9E3879051AA624AA0027F17A /* ofxXmlSettings.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		9E38792C1AA65E4B0027F17A /* ofxHttpForm */ = {
+			isa = PBXGroup;
+			children = (
+				9E3879321AA65E4B0027F17A /* src */,
+			);
+			name = ofxHttpForm;
+			path = ../../../addons/ofxHttpForm;
+			sourceTree = "<group>";
+		};
+		9E3879321AA65E4B0027F17A /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9E3879331AA65E4B0027F17A /* fileUpload.php */,
+				9E3879341AA65E4B0027F17A /* HttpForm.h */,
+				9E3879351AA65E4B0027F17A /* HttpFormManager.cpp */,
+				9E3879361AA65E4B0027F17A /* HttpFormManager.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		9E86819A1AA5BFA100560567 /* ofxFontStash */ = {
 			isa = PBXGroup;
 			children = (
@@ -1400,6 +1583,7 @@
 				9E8683C91AA5C51C00560567 /* icon.icns */,
 				9E8683CA1AA5C51C00560567 /* icon.png */,
 				9E8683CB1AA5C51C00560567 /* Roboto-Gui.ttf */,
+				9E38792A1AA62A5B0027F17A /* serversettings.xml */,
 				9E8683CC1AA5C51C00560567 /* settings.xml */,
 			);
 			path = data;
@@ -1408,6 +1592,10 @@
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
+				9E38792C1AA65E4B0027F17A /* ofxHttpForm */,
+				9E3878A31AA624A90027F17A /* ofxJSON */,
+				9E3878EF1AA624AA0027F17A /* ofxNetwork */,
+				9E3878FD1AA624AA0027F17A /* ofxXmlSettings */,
 				9E8683AB1AA5C29800560567 /* ofxGui */,
 				9E86819A1AA5BFA100560567 /* ofxFontStash */,
 				9E8681CA1AA5BFA100560567 /* ofxOpenCv */,
@@ -1458,6 +1646,7 @@
 		E45BE5980E8CC70C009D7055 /* frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9E3879281AA625A50027F17A /* libcurl.dylib */,
 				BBAB23CA13894EDB00AA2426 /* 3rd party frameworks */,
 				BBAB23C913894ECA00AA2426 /* system frameworks */,
 			);
@@ -1589,23 +1778,34 @@
 			files = (
 				9E8683A21AA5BFA300560567 /* ofUnicode.cpp in Sources */,
 				9E8683C31AA5C29800560567 /* ofxSlider.cpp in Sources */,
+				9E3879131AA624AA0027F17A /* ofxJSONElement.cpp in Sources */,
+				9E3879161AA624AA0027F17A /* ofxTCPServer.cpp in Sources */,
 				9E8683C11AA5C29800560567 /* ofxLabel.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				9E8683A31AA5BFA300560567 /* ofUTF8.cpp in Sources */,
 				9E8683C51AA5C29800560567 /* ofxToggle.cpp in Sources */,
+				9E3879141AA624AA0027F17A /* ofxTCPClient.cpp in Sources */,
+				9E38791A1AA624AA0027F17A /* tinyxmlparser.cpp in Sources */,
+				9E3879121AA624AA0027F17A /* jsoncpp.cpp in Sources */,
 				9E8683A11AA5BFA300560567 /* ofTextConverter.cpp in Sources */,
 				9E8683BF1AA5C29800560567 /* ofxButton.cpp in Sources */,
 				9E86839A1AA5BFA300560567 /* ofxCvFloatImage.cpp in Sources */,
+				9E38791B1AA624AA0027F17A /* ofxXmlSettings.cpp in Sources */,
 				9E86839D1AA5BFA300560567 /* ofxCvImage.cpp in Sources */,
 				9E86839B1AA5BFA300560567 /* ofxCvGrayscaleImage.cpp in Sources */,
 				9E8683991AA5BFA300560567 /* ofxCvContourFinder.cpp in Sources */,
 				9E86830A1AA5BFA200560567 /* ofxFontStash.cpp in Sources */,
+				9E3879391AA65E4B0027F17A /* HttpFormManager.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
+				9E3879181AA624AA0027F17A /* tinyxml.cpp in Sources */,
 				9E8683081AA5BFA200560567 /* fontstash.c in Sources */,
 				9E8683981AA5BFA300560567 /* ofxCvColorImage.cpp in Sources */,
+				9E3879171AA624AA0027F17A /* ofxUDPManager.cpp in Sources */,
 				9E8683C01AA5C29800560567 /* ofxGuiGroup.cpp in Sources */,
+				9E3879191AA624AA0027F17A /* tinyxmlerror.cpp in Sources */,
 				9E8683C41AA5C29800560567 /* ofxSliderGroup.cpp in Sources */,
 				9E8683BE1AA5C29800560567 /* ofxBaseGui.cpp in Sources */,
+				9E3879151AA624AA0027F17A /* ofxTCPManager.cpp in Sources */,
 				9E8683091AA5BFA200560567 /* stb_truetype.c in Sources */,
 				9E86839C1AA5BFA300560567 /* ofxCvHaarFinder.cpp in Sources */,
 				9E8683C21AA5C29800560567 /* ofxPanel.cpp in Sources */,
@@ -1710,6 +1910,15 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = NONE;
+				HEADER_SEARCH_PATHS = (
+					"$(OF_CORE_HEADERS)",
+					src,
+					"../../../addons/ofxOpenCv/**",
+					"../../../addons/ofxFontStash/**",
+					"../../../addons/ofxJSON/libs/**",
+					"../../../addons/ofxXmlSettings/**",
+					"../../../addons/ofxNetwork/**",
+				);
 				ICON = "$(ICON_NAME_DEBUG)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
 				INFOPLIST_FILE = "openFrameworks-Info.plist";
@@ -1806,6 +2015,15 @@
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../libs/glut/lib/osx\"";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = NONE;
+				HEADER_SEARCH_PATHS = (
+					"$(OF_CORE_HEADERS)",
+					src,
+					"../../../addons/ofxOpenCv/**",
+					"../../../addons/ofxFontStash/**",
+					"../../../addons/ofxJSON/libs/**",
+					"../../../addons/ofxXmlSettings/**",
+					"../../../addons/ofxNetwork/**",
+				);
 				ICON = "$(ICON_NAME_RELEASE)";
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
 				INFOPLIST_FILE = "openFrameworks-Info.plist";

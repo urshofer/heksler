@@ -1,0 +1,12 @@
+<!--
+	Automatic Cinema API Endpoint
+-->
+<URL>http://localhost:3000</URL>
+<!--
+	Login Username for the Automatic Cinema API
+-->
+<USER>test</USER>
+<!--
+	Login Key for the Automatic Cinema API
+-->
+<PASS>test</PASS>

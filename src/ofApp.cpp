@@ -1,22 +1,6 @@
 #include "ofApp.h"
 
-//--------------------------------------------------------------
-void ofApp::setup(){
-    
-#ifdef TARGET_OSX
-    ofSetDataPathRoot("../Resources/data/");
-#endif
-
-    
-    
-	ofBackground(60);
-    ofEnableAlphaBlending();
-    frameByframe=false;
-    shift=false;
-    caps = false;
-    autocut_threshold = 120;
-    autocut_minlength = 10;
-    ofSetFrameRate(200);
+void ofApp::guiSetup() {
     bitrateSlider.addListener(this, &ofApp::bitrateChanged);
 	widthSlider.addListener(this, &ofApp::widthChanged);
     acThresholdSlider.addListener(this, &ofApp::acThresholdChanged);
@@ -44,9 +28,8 @@ void ofApp::setup(){
     gui.setDefaultTextColor(255);
     gui.setDefaultTextPadding(20);
     gui.setDefaultWidth(250);
-
-    gui.setPosition(695, 560);
     
+    gui.setPosition(695, 560);
     
     transcodeToggle.setFillColor(ofColor(70,93,109));
     transcodeToggle.setTextColor(ofColor(70,93,109));
@@ -55,11 +38,11 @@ void ofApp::setup(){
     proresToggle.setFillColor(ofColor(70,93,109));
     proresToggle.setTextColor(ofColor(70,93,109));
     proresToggle.setBackgroundColor(ofColor(16,22,26));
-
+    
     bitrateSlider.setFillColor(ofColor(70,93,109,50));
     bitrateSlider.setTextColor(ofColor(70,93,109));
     bitrateSlider.setBackgroundColor(ofColor(16,22,26));
-
+    
     widthSlider.setFillColor(ofColor(70,93,109,50));
     widthSlider.setTextColor(ofColor(70,93,109));
     widthSlider.setBackgroundColor(ofColor(16,22,26));
@@ -80,12 +63,34 @@ void ofApp::setup(){
     
     gui.add(acThresholdSlider.setup("Autocut threshold", 120, 0, 255));
     gui.add(acMinSlider.setup("Autocut minimum frames", 5, 0, 255));
+}
+
+//--------------------------------------------------------------
+void ofApp::setup(){
+    
+#ifdef TARGET_OSX
+    ofSetDataPathRoot("../Resources/data/");
+#endif
+
+    
+    
+	ofBackground(60);
+    ofEnableAlphaBlending();
+    frameByframe=false;
+    shift=false;
+    caps = false;
+    autocut_threshold = 120;
+    autocut_minlength = 10;
+    ofSetFrameRate(200);
+
+    guiSetup();
     
 	// Uncomment this to show movies with alpha channels
 	fingerMovie.setPixelFormat(OF_PIXELS_RGB);
 	fingerMovie.setLoopState(OF_LOOP_NORMAL);
 
     ffmpeg.start();
+    ofAddListener(ffmpeg.onFileProcessed,this, &ofApp::onFileProcessed);
     
     colorImg.allocate(320,240);
     red.allocate(320,240);
@@ -99,7 +104,61 @@ void ofApp::setup(){
     blue.allocate(320,240);
     blueBG.allocate(320,240);
     blueDiff.allocate(320,240);
+    
+    
+	/* Load Configuration */
+    
+    
+    /* XML Settings */
+    ofxXmlSettings XML;
+    string user, pass;
+	XML.loadFile("serversettings.xml");
+	user	= XML.getValue("USER", __USER__);
+	pass	= XML.getValue("PASS", __PASS__);
+	apiurl	= XML.getValue("URL", __API__);
+    
+	/* Logging in at the API */
+    
+    MD5Engine md5;
+    md5.update(pass);
+    Json::Reader getdata;
+    Json::Value  returnval;
+	if (getdata.parse( curlConnect(apiurl + "/Login", "username=" + user + "&password=" + DigestEngine::digestToHex(md5.digest()) ), returnval )) {
+        sessionid = returnval.asString();
+        cout << "Session ID: " << sessionid << endl;
+    }
+	else {
+        cout << "Could not connect to API Server and Log In\n"; ofExit();
+    }
+
+    keywordsloaded = loadKeywords();
+    ofAddListener(fm.formResponseEvent, this, &ofApp::newResponse);
+    
 }
+
+void ofApp::newResponse(HttpFormResponse &response){
+	printf("form '%s' returned : %s\n", response.url.c_str(), response.ok ? "OK" : "KO" );
+}
+
+
+void ofApp::onFileProcessed(ofxVideoSlicer::endEvent & ev) {
+    cout << ev.file << " processed with the message " << ev.message;
+	HttpForm f = HttpForm( apiurl + "/StoreFileAnnotaded/" + sessionid );
+	//form field name, file name, mime type
+	f.addFile("file", ev.file, "movie/mpeg");
+    f.addFormField("meta", ev.message);
+	fm.submitForm( f, false );
+}
+
+bool ofApp::loadKeywords() {
+    Json::Reader getdata;
+	if (getdata.parse( curlConnect(apiurl + "/Load/" + sessionid + "/target", ""), keywords )) {
+        cout << "Loaded keywords..." << endl;
+        return true;
+	}
+    return false;
+}
+
 
 //--------------------------------------------------------------
 void ofApp::buttonPressed(bool & toggle) {
@@ -285,11 +344,78 @@ void ofApp::draw(){
     font.drawString("Pending Clips: " + ofToString(ffmpeg.processingQueueSize()),695, 30);
     
 
-    
-    
-    
+    drawKeywords();
 	gui.draw();
     
+}
+
+void ofApp::drawKeywords() {
+    ofPushStyle();
+    
+    float sizeX = 295;
+    float sizeY = 175;
+    float startX = 985;
+    float startY = 17;
+    float offsetX = 0;
+    float offsetY = 192;
+    float dimCount = 0;
+    json_encoded = "{";
+    if (keywordsloaded && keywords.isObject()) {
+        for( Json::ValueIterator itr = keywords.begin() ; itr != keywords.end() ; itr++ ) {
+            string dim = itr.key().asString();
+            if (dimCount>0) {
+                json_encoded += ",";
+            }
+            json_encoded += "\""+dim+"\": [";
+            float x = startX+(dimCount*offsetX);
+            float y = startY+(dimCount*offsetY);
+            ofSetHexColor(0x000000);
+            ofRect(x, y,sizeX,sizeY);
+            ofSetHexColor(0xFFFFFF);
+            font.drawString(dim, x+5, y+15);
+            ofSetHexColor(0x999999);
+            
+            // Draw Keywords
+            for( Json::ValueIterator element = keywords[dim]["Keywords"].begin() ; element != keywords[dim]["Keywords"].end() ; element++ ) {
+                string key = element.key().asString();
+                float k_x = ofToFloat(keywords[dim]["Keywords"][key][0].asString());
+                float k_y = ofToFloat(keywords[dim]["Keywords"][key][1].asString());
+                ofRectangle s = font.getStringBoundingBox(key, 0, 0);
+                font.drawString(key, x+(sizeX/100*k_x)-(s.width/2), y+(sizeY/100*k_y)-(s.height/2));
+            }
+            // Draw Coord Points
+            map_vector::const_iterator mactive = maps.find(dim);
+            ofSetHexColor(0xFF0000);
+            ofRectangle clearbutton = font.getStringBoundingBox("Clear", 0, 0);
+            font.drawString("Clear", x+sizeX-5-clearbutton.width, y+15);
+            int coordCount = 0;
+			if(mactive != maps.end())
+			{
+                for(std::vector< ofPoint >::const_iterator qactive = mactive->second.coords.begin(); qactive != mactive->second.coords.end(); ++qactive) {
+                    ofCircle(x+(sizeX/100*qactive->x)-1, y+(sizeY/100*qactive->y)-1, 2);
+                    if (coordCount>0) {
+                        json_encoded += ",";
+                    }
+                    json_encoded += "[\"" + ofToString(qactive->x) + "\",\"" + ofToString(qactive->y) + "\"]";
+                    coordCount++;
+                }
+			}
+            else {
+                _keymap _k;
+                _k.bounds = ofRectangle(x, y,sizeX,sizeY);
+                _k.clearbutton = font.getStringBoundingBox("Clear", x+sizeX-5-clearbutton.width, y+15);
+                _k.coords.clear();
+                maps[dim] = _k;
+                cout << "Added " << dim << endl;
+            }
+
+            json_encoded += "]";
+            dimCount++;
+        }
+    }
+    json_encoded += "}";
+    
+    ofPopStyle();
 }
 
 
@@ -353,7 +479,7 @@ void ofApp::keyPressed  (int key){
             case OF_KEY_DOWN:
                 if (fingerMovie.getCurrentFrame()>in && rec) {
                     out = fingerMovie.getCurrentFrame();
-                    ffmpeg.addTask(currentFile, in_f, (out - in + 2));
+                    ffmpeg.addTask(currentFile, in_f, (out - in + 2), json_encoded);
                 }
                 rec = false;
                 break;
@@ -405,11 +531,27 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
+    // Add marks if on keyword area
+    for(map_vector::iterator mactive = maps.begin(); mactive != maps.end(); ++mactive) {
+        cout << "Check: " << mactive->first << endl;
+        if (mactive->second.bounds.inside(x,y)) {
+            
+            if (mactive->second.clearbutton.inside(x,y)) {
+                mactive->second.coords.clear();
+                cout << "Cleared" << endl;
+            }
+            else {
+                cout << "Added: " << x << "/" << y << endl;
+                mactive->second.coords.push_back(ofPoint(100 / mactive->second.bounds.width * (x-mactive->second.bounds.x),100 / mactive->second.bounds.height * (y-mactive->second.bounds.y)));
+            }
+        }
+    }
 }
 
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
+    cout << json_encoded << endl;
 }
 
 //--------------------------------------------------------------

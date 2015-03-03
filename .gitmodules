@@ -11,3 +11,9 @@
 [submodule "openframeworks/addons/ofxFontStash"]
 	path = openframeworks/addons/ofxFontStash
 	url = https://github.com/armadillu/ofxFontStash
+[submodule "openframeworks/addons/ofxJSON"]
+	path = openframeworks/addons/ofxJSON
+	url = https://github.com/jefftimesten/ofxJSON
+[submodule "openframeworks/addons/ofxHttpForm"]
+	path = openframeworks/addons/ofxHttpForm
+	url = https://github.com/armadillu/ofxHttpForm

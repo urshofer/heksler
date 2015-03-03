@@ -8,6 +8,25 @@
 #include "ofxFontStash.h"
 #include "cutfinder.h"
 
+#include <curl/curl.h>
+#include "json/json.h"
+#include "ofxXmlSettings.h"
+
+#include "Poco/MD5Engine.h"
+#include "Poco/DigestStream.h"
+#include "Poco/StreamCopier.h"
+
+using Poco::DigestEngine;
+using Poco::MD5Engine;
+using Poco::DigestOutputStream;
+using Poco::StreamCopier;
+
+#include "HttpFormManager.h"
+
+#define __API__ "http://localhost:3000"
+#define __USER__ ""
+#define __PASS__ ""
+
 class ofApp : public ofBaseApp{
 
     private:
@@ -23,6 +42,53 @@ class ofApp : public ofBaseApp{
             else
                 return std::string();
         }
+
+        static int writer(char *data, size_t size, size_t nmemb, std::string *buffer)
+        {
+            int result = 0;
+            if (buffer != NULL)
+            {
+                buffer->append(data, size * nmemb);
+                result = size * nmemb;
+            }
+            return result;
+        };
+    
+        std::string curlConnect(string _url, string _post){
+            CURL *curl;
+            static string buffer;
+            buffer.clear();
+            curl = curl_easy_init();
+            if(curl) {
+                curl_easy_setopt(curl, CURLOPT_URL, _url.c_str());
+                
+                /* Now specify the POST data */
+                if (_post != "") {
+                    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, _post.c_str());
+                }
+                curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+                curl_easy_setopt(curl, CURLOPT_ENCODING, "UTF-8" );
+                curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, false);
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writer);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+                curl_easy_perform(curl);
+                curl_easy_cleanup(curl);
+            }
+            return buffer;
+        }
+
+   
+    struct _keymap
+    {
+        ofRectangle     bounds;
+        ofRectangle     clearbutton;
+        std::vector < ofPoint > coords;
+
+    };
+    
+    typedef std::map<std::string, _keymap > map_vector;
+    map_vector 					maps;
+    
     
 	public:
 
@@ -40,6 +106,7 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);		
         int avgPixel(ofPixelsRef px);
+        void guiSetup();
     
         /* VIDEO */
     
@@ -52,6 +119,7 @@ class ofApp : public ofBaseApp{
         string              currentFile;
         ofxVideoSlicer      ffmpeg;
         cutfinder           cutter;
+        void                onFileProcessed(ofxVideoSlicer::endEvent & ev);
 
         /* FONT */
     
@@ -77,12 +145,22 @@ class ofApp : public ofBaseApp{
 
         void updateColorSize();
         void updateColorPics();
-
         ofxCvColorImage colorImg;
         ofxCvGrayscaleImage    redDiff, redBG,red;
         ofxCvGrayscaleImage    greenDiff, greenBG, green;
         ofxCvGrayscaleImage    blueDiff, blueBG, blue;
-    
         int                    avg;
 
+        /* AUTOMATIC CINEMA STUFF */
+        string sessionid, apiurl;
+        Json::Value  keywords;
+        bool         keywordsloaded;
+        bool         loadKeywords();
+        void         drawKeywords();
+        string       json_encoded;
+    
+        /* UPLOAD STUFF */
+        void newResponse(HttpFormResponse &response);
+        HttpFormManager fm;
+    
 };

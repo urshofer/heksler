@@ -2,6 +2,11 @@
 
 Heksler is a simple video slicer designed for speed. After setting in- and out-points, heckler transcodes and exports the slice. Heksler also has a cut detection or shot transition feature.
 
+Automatic Cinema Branch
+-----------------------
+
+Heklser work as a standalone application if compiled from the master branch. The automatic cinema branch includes functions to upload and tag the video slices directly into a automatic cinema server. For more information about the automatic cinema project refer to http://www.automatic-cinema.com.
+
 Prerequisites
 -------------
 

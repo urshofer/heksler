@@ -8,3 +8,10 @@ Heksler runs on osx. The source is built with openFrameworks and uses ffmpeg to 
 
 Compilation
 -----------
+
+Please refer to the openFrameworks Documentation on how to compile a openFrameworks on OSX.
+
+Notes about this Repository
+---------------------------
+
+This repository is organized with submodules. In order to check it out, you have to do the following steps:

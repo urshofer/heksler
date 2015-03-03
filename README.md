@@ -15,3 +15,5 @@ Notes about this Repository
 ---------------------------
 
 This repository is organized with submodules. In order to check it out, you have to do the following steps:
+
+1. Check out the main repository:

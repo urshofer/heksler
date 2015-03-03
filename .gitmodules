@@ -1,0 +1,13 @@
+[submodule "openframeworks/openFrameworks"]
+	path = openframeworks/openFrameworks
+	url = https://github.com/openframeworks/openFrameworks
+	branch = stable
+[submodule "openframeworks/addons/ofxVideoSlicer"]
+	path = openframeworks/addons/ofxVideoSlicer
+	url = https://github.com/urshofer/ofxVideoSlicer
+[submodule "openframeworks/addons/ofxUnicode"]
+	path = openframeworks/addons/ofxUnicode
+	url = https://github.com/bakercp/ofxUnicode
+[submodule "openframeworks/addons/ofxFontStash"]
+	path = openframeworks/addons/ofxFontStash
+	url = https://github.com/armadillu/ofxFontStash

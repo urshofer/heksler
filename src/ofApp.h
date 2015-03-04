@@ -123,7 +123,7 @@ class ofApp : public ofBaseApp{
 
         /* FONT */
     
-        ofxFontStash      font, fontlarge;
+        ofxFontStash      font, fontlarge, fontmedium;
     
         /* GUI */
     
@@ -140,6 +140,7 @@ class ofApp : public ofBaseApp{
         ofxIntSlider acMinSlider;
         ofxPanel    gui;
         ofImage     bg;
+        bool        guiVisible;
     
         /* OPENCV */
 

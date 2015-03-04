@@ -12,7 +12,8 @@ void ofApp::guiSetup() {
 	gui.setup(); // most of the time you don't need a name
     gui.loadFont("Roboto-Gui.ttf", 10);
     font.loadFont("Roboto-Gui.ttf", 15);
-    fontlarge.loadFont("Roboto-Gui.ttf", 60);
+    fontlarge.loadFont("Roboto-Gui.ttf", 45);
+    fontmedium.loadFont("Roboto-Gui.ttf", 30);
     
     bg.loadImage("gui.png");
     
@@ -27,32 +28,32 @@ void ofApp::guiSetup() {
     gui.setDefaultHeight(24);
     gui.setDefaultTextColor(255);
     gui.setDefaultTextPadding(20);
-    gui.setDefaultWidth(250);
+    gui.setDefaultWidth(348);
     
-    gui.setPosition(695, 560);
+    gui.setPosition(667,33);
     
     transcodeToggle.setFillColor(ofColor(70,93,109));
-    transcodeToggle.setTextColor(ofColor(70,93,109));
+    transcodeToggle.setTextColor(ofColor(255));
     transcodeToggle.setBackgroundColor(ofColor(16,22,26));
     
     proresToggle.setFillColor(ofColor(70,93,109));
-    proresToggle.setTextColor(ofColor(70,93,109));
+    proresToggle.setTextColor(ofColor(255));
     proresToggle.setBackgroundColor(ofColor(16,22,26));
     
-    bitrateSlider.setFillColor(ofColor(70,93,109,50));
-    bitrateSlider.setTextColor(ofColor(70,93,109));
+    bitrateSlider.setFillColor(ofColor(70,93,109));
+    bitrateSlider.setTextColor(ofColor(255));
     bitrateSlider.setBackgroundColor(ofColor(16,22,26));
     
-    widthSlider.setFillColor(ofColor(70,93,109,50));
-    widthSlider.setTextColor(ofColor(70,93,109));
+    widthSlider.setFillColor(ofColor(70,93,109));
+    widthSlider.setTextColor(ofColor(255));
     widthSlider.setBackgroundColor(ofColor(16,22,26));
     
-    acThresholdSlider.setFillColor(ofColor(70,93,109,50));
-    acThresholdSlider.setTextColor(ofColor(70,93,109));
+    acThresholdSlider.setFillColor(ofColor(70,93,109));
+    acThresholdSlider.setTextColor(ofColor(255));
     acThresholdSlider.setBackgroundColor(ofColor(16,22,26));
     
-    acMinSlider.setFillColor(ofColor(70,93,109,50));
-    acMinSlider.setTextColor(ofColor(70,93,109));
+    acMinSlider.setFillColor(ofColor(70,93,109));
+    acMinSlider.setTextColor(ofColor(255));
     acMinSlider.setBackgroundColor(ofColor(16,22,26));
     
     gui.add(bitrateSlider.setup("Output bitrate", 500, 100, 5000));
@@ -74,7 +75,7 @@ void ofApp::setup(){
 
     
     
-	ofBackground(60);
+	ofBackground(19,30,37);
     ofEnableAlphaBlending();
     frameByframe=false;
     shift=false;
@@ -82,6 +83,7 @@ void ofApp::setup(){
     autocut_threshold = 120;
     autocut_minlength = 10;
     ofSetFrameRate(200);
+    guiVisible = false;
 
     guiSetup();
     
@@ -145,7 +147,7 @@ void ofApp::onFileProcessed(ofxVideoSlicer::endEvent & ev) {
     cout << ev.file << " processed with the message " << ev.message;
 	HttpForm f = HttpForm( apiurl + "/StoreFileAnnotaded/" + sessionid );
 	//form field name, file name, mime type
-	f.addFile("file", ev.file, "movie/mpeg");
+	f.addFile("url", ev.file, "movie/mpeg");
     f.addFormField("meta", ev.message);
 	fm.submitForm( f, false );
 }
@@ -276,88 +278,100 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofSetHexColor(0x000000);
-    ofRect(40,60,640,480);
-    ofRect(695,60,250,150);
-    ofRect(695,60+165,250,150);
-    ofRect(695,60+330,250,150);
+    ofRect(10,60,640,480);
+    ofRect(665,60,200,150);
+    ofRect(665,60+165,200,150);
+    ofRect(665,60+330,200,150);
 
     ofSetHexColor(0xFFFFFF);
-    font.drawString("Drag Video here", 55+(640/2)-(124/2), 58+240);
+    font.drawString("Drag Video here", 25+(640/2)-(124/2), 58+240);
 
     if (!cutter.isThreadRunning()){
         if (fingerMovie.isLoaded()) {
-            fingerMovie.draw(40,60 + ((480 - (640 / fingerMovie.getWidth() * fingerMovie.getHeight()))/2), 640, 640 / fingerMovie.getWidth() * fingerMovie.getHeight());
+            fingerMovie.draw(10,60 + ((480 - (640 / fingerMovie.getWidth() * fingerMovie.getHeight()))/2), 640, 640 / fingerMovie.getWidth() * fingerMovie.getHeight());
             ofSetHexColor(0xFF0000);
-            float scaledH = 250.0f / (float)redDiff.width * redDiff.height;
+            float scaledH = 200.0f / (float)redDiff.width * redDiff.height;
             float centerV = (150 - scaledH) / 2;
-            redDiff.draw(695,60 + centerV,250,scaledH);
+            redDiff.draw(665,60 + centerV,250,scaledH);
             ofSetHexColor(0x00FF00);
-            greenDiff.draw(695,60+165 + centerV,250, scaledH);
+            greenDiff.draw(665,60+165 + centerV,250, scaledH);
             ofSetHexColor(0x0000FF);
-            blueDiff.draw(695,60+330 + centerV,250, scaledH);
+            blueDiff.draw(665,60+330 + centerV,250, scaledH);
         }
     }
     else {
         ofSetHexColor(0x333333);
         ofRect(40,60,640,480);
         ofSetHexColor(0xFFFFFF);
-        font.drawString("Searching next cut", 55+(640/2)-(124/2), 58+240);
+        font.drawString("Searching next cut", 25+(640/2)-(124/2), 58+240);
     }
 
     if (caps) {
         ofPushStyle();
-        ofSetLineWidth(3);
+        ofSetLineWidth(4);
         ofNoFill();
         ofSetHexColor(0xFF0000);
-        ofRect(40,60,640,480);
+        ofRect(10,60,640,480);
         ofPopStyle();
     }
     
     ofSetColor(255, 255, 255, 255);
     bg.draw(0,0);
 
-    ofSetHexColor(0x465d6d);    
-    font.drawString("Settings",695,574);
-    
-    font.drawString("Current Frame",40,610);
-    fontlarge.drawString(ofToString(fingerMovie.getCurrentFrame()),40,660);
+    ofSetHexColor(0x222222);
+    int zeile = 77; int zeileoffset = 69;
 
-    font.drawString("Total Frames",213+40,610);
-    fontlarge.drawString(ofToString(fingerMovie.getTotalNumFrames()),213+40,660);
-
-    font.drawString("Position",40,680);
-    fontlarge.drawString(ofToString(fingerMovie.getPosition()*fingerMovie.getDuration(),2),40,730);
-    
-    font.drawString("Duration",213+40,680);
-    fontlarge.drawString(ofToString(fingerMovie.getDuration(),2),213+40,730);
-
-    ofSetHexColor(0xFF0000);
-    font.drawString("In",(2*213)+40,610);
-    font.drawString("Out",(2*213)+40,680);
+    font.drawString("Current Frame",888,zeile);
+    fontlarge.drawString(ofToString(fingerMovie.getCurrentFrame()),888,zeile+37);
+    zeile += zeileoffset;
+    font.drawString("Total Frames",888,zeile);
+    fontlarge.drawString(ofToString(fingerMovie.getTotalNumFrames()),888,zeile+37);
+    zeile += zeileoffset;
+    font.drawString("Position",888,zeile);
+    fontlarge.drawString(ofToString(fingerMovie.getPosition()*fingerMovie.getDuration(),1),888,zeile+37);
+    zeile += zeileoffset;
+    font.drawString("Duration",888,zeile);
+    fontlarge.drawString(ofToString(fingerMovie.getDuration(),1),888,zeile+37);
+    zeile += zeileoffset;
+    font.drawString("In",888,zeile);
+    font.drawString("Out",888,zeile+zeileoffset);
     if (rec) {
-        ofCircle(60, 80, 10);
-        fontlarge.drawString(ofToString(in),(2*213)+40,660);
-        fontlarge.drawString(ofToString(out),(2*213)+40,730);
+        ofPushStyle();
+        ofSetHexColor(0xff0000);
+        ofCircle(30, 80, 10);
+        ofPopStyle();
+        fontlarge.drawString(ofToString(in),888,zeile+37);
+        fontlarge.drawString(ofToString(out),888,zeile+zeileoffset+37);
         out = fingerMovie.getCurrentFrame();
     }
-    ofSetHexColor(0x00FF00);
-    font.drawString("Pending Clips: " + ofToString(ffmpeg.processingQueueSize()),695, 30);
+    else {
+        fontlarge.drawString("0",888,zeile+37);
+        fontlarge.drawString("0",888,zeile+zeileoffset+37);
+    }
+    zeile += (zeileoffset * 2);
+    font.drawString("Pending" ,888, zeile);
+    fontlarge.drawString(ofToString(ffmpeg.processingQueueSize()),888,zeile+37);
+    
     
 
     drawKeywords();
-	gui.draw();
+    if (guiVisible) {
+        ofSetHexColor(0x10161a);
+        ofRect(657,49,367,500);
+        gui.draw();
+    }
     
 }
 
 void ofApp::drawKeywords() {
     ofPushStyle();
     
-    float sizeX = 295;
-    float sizeY = 175;
-    float startX = 985;
-    float startY = 17;
-    float offsetX = 0;
-    float offsetY = 192;
+    float sizeX = 244;
+    float sizeY = 194;
+    float startX = 13;
+    float startY = 561;
+    float offsetX = 251;
+    float offsetY = 0;
     float dimCount = 0;
     json_encoded = "{";
     if (keywordsloaded && keywords.isObject()) {
@@ -369,8 +383,6 @@ void ofApp::drawKeywords() {
             json_encoded += "\""+dim+"\": [";
             float x = startX+(dimCount*offsetX);
             float y = startY+(dimCount*offsetY);
-            ofSetHexColor(0x000000);
-            ofRect(x, y,sizeX,sizeY);
             ofSetHexColor(0xFFFFFF);
             font.drawString(dim, x+5, y+15);
             ofSetHexColor(0x999999);
@@ -546,6 +558,12 @@ void ofApp::mousePressed(int x, int y, int button){
             }
         }
     }
+    // Toggle GUI
+    if (ofRectangle(660,0,364,47).inside(x,y)) {
+        guiVisible = !guiVisible;
+    }
+
+    
 }
 
 

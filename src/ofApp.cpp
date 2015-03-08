@@ -128,12 +128,13 @@ void ofApp::setup(){
 	if (getdata.parse( curlConnect(apiurl + "/Login", "username=" + user + "&password=" + DigestEngine::digestToHex(md5.digest()) ), returnval )) {
         sessionid = returnval.asString();
         cout << "Session ID: " << sessionid << endl;
+        KO.start(apiurl, sessionid);
     }
 	else {
-        cout << "Could not connect to API Server and Log In\n"; ofExit();
+        cout << "Could not connect to API Server and Log In\n"; ofApp::exit();
     }
 
-    keywordsloaded = loadKeywords();
+
     ofAddListener(fm.formResponseEvent, this, &ofApp::newResponse);
     
 }
@@ -152,14 +153,6 @@ void ofApp::onFileProcessed(ofxVideoSlicer::endEvent & ev) {
 	fm.submitForm( f, false );
 }
 
-bool ofApp::loadKeywords() {
-    Json::Reader getdata;
-	if (getdata.parse( curlConnect(apiurl + "/Load/" + sessionid + "/target", ""), keywords )) {
-        cout << "Loaded keywords..." << endl;
-        return true;
-	}
-    return false;
-}
 
 
 //--------------------------------------------------------------
@@ -301,7 +294,7 @@ void ofApp::draw(){
     }
     else {
         ofSetHexColor(0x333333);
-        ofRect(40,60,640,480);
+        ofRect(10,60,640,480);
         ofSetHexColor(0xFFFFFF);
         font.drawString("Searching next cut", 25+(640/2)-(124/2), 58+240);
     }
@@ -374,7 +367,8 @@ void ofApp::drawKeywords() {
     float offsetY = 0;
     float dimCount = 0;
     json_encoded = "{";
-    if (keywordsloaded && keywords.isObject()) {
+    if (KO.isThreadRunning()) {
+        Json::Value keywords = KO.getKeywords();
         for( Json::ValueIterator itr = keywords.begin() ; itr != keywords.end() ; itr++ ) {
             string dim = itr.key().asString();
             if (dimCount>0) {
@@ -595,3 +589,20 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
     updateColorPics();
 
 }
+
+void ofApp::exit() {
+	std::cout  << "+ Exiting now" << endl;
+	if (KO.isThreadRunning()) {
+		KO.stopThread();
+        KO.waitForThread();
+        std::cout  << "- Keyword Loader Thread Stopped" << endl;
+    }
+	if (cutter.isThreadRunning()) {
+		cutter.stopThread();
+        cutter.waitForThread();
+        std::cout  << "- Autocutter Thread Stopped" << endl;
+    }
+	std::cout  << "Bye Bye!" << endl;
+    std::exit(0);
+}
+

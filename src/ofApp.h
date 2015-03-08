@@ -7,6 +7,7 @@
 #include "ofxOpenCv.h"
 #include "ofxFontStash.h"
 #include "cutfinder.h"
+#include "keywordloader.h";
 
 #include <curl/curl.h>
 #include "json/json.h"
@@ -107,6 +108,7 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);		
         int avgPixel(ofPixelsRef px);
         void guiSetup();
+        void exit();
     
         /* VIDEO */
     
@@ -154,11 +156,9 @@ class ofApp : public ofBaseApp{
 
         /* AUTOMATIC CINEMA STUFF */
         string sessionid, apiurl;
-        Json::Value  keywords;
-        bool         keywordsloaded;
-        bool         loadKeywords();
         void         drawKeywords();
         string       json_encoded;
+        keywordloader KO;
     
         /* UPLOAD STUFF */
         void newResponse(HttpFormResponse &response);

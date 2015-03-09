@@ -1,3 +1,4 @@
+
 #include "ofApp.h"
 
 void ofApp::guiSetup() {
@@ -113,30 +114,44 @@ void ofApp::setup(){
     
     /* XML Settings */
     ofxXmlSettings XML;
-    string user, pass;
 	XML.loadFile("serversettings.xml");
-	user	= XML.getValue("USER", __USER__);
-	pass	= XML.getValue("PASS", __PASS__);
+	string user	= XML.getValue("USER", __USER__);
+	string pass	= XML.getValue("PASS", __PASS__);
 	apiurl	= XML.getValue("URL", __API__);
     
 	/* Logging in at the API */
     
-    MD5Engine md5;
-    md5.update(pass);
-    Json::Reader getdata;
-    Json::Value  returnval;
-	if (getdata.parse( curlConnect(apiurl + "/Login", "username=" + user + "&password=" + DigestEngine::digestToHex(md5.digest()) ), returnval )) {
-        sessionid = returnval.asString();
-        cout << "Session ID: " << sessionid << endl;
-        KO.start(apiurl, sessionid);
+    while (!login(user, pass)) {
+        cout << "Could not connect to API Server and Log In\n";
+        apiurl = ofSystemTextBoxDialog("Connecting to server.\nPlease type the URL:", apiurl);
+        user = ofSystemTextBoxDialog("Username:", user);
+        pass = ofSystemTextBoxDialog("Password:", pass);
+        XML.setValue("USER", user);
+        XML.setValue("PASS", pass);
+        XML.setValue("URL", apiurl);
+        XML.saveFile();
     }
-	else {
-        cout << "Could not connect to API Server and Log In\n"; ofApp::exit();
-    }
+
+    KO.start(apiurl, sessionid);
 
 
     ofAddListener(fm.formResponseEvent, this, &ofApp::newResponse);
     
+}
+
+bool ofApp::login(string _pass, string _user) {
+    MD5Engine md5;
+    md5.update(_pass);
+    Json::Reader getdata;
+    Json::Value  returnval;
+	if (getdata.parse( curlConnect(apiurl + "/Login", "username=" + _user + "&password=" + DigestEngine::digestToHex(md5.digest()) ), returnval )) {
+        sessionid = returnval.asString();
+        cout << "Session ID: " << sessionid << endl;
+        return true;
+    }
+	else {
+        return false;
+    }
 }
 
 void ofApp::newResponse(HttpFormResponse &response){

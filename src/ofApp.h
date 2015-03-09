@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "ofMain.h"
@@ -7,7 +8,7 @@
 #include "ofxOpenCv.h"
 #include "ofxFontStash.h"
 #include "cutfinder.h"
-#include "keywordloader.h";
+#include "keywordloader.h"
 
 #include <curl/curl.h>
 #include "json/json.h"
@@ -72,6 +73,7 @@ class ofApp : public ofBaseApp{
                 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, false);
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writer);
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+                curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3);
                 curl_easy_perform(curl);
                 curl_easy_cleanup(curl);
             }
@@ -96,6 +98,7 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
+        bool login(string _pass, string _user);
 		
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -165,3 +168,5 @@ class ofApp : public ofBaseApp{
         HttpFormManager fm;
     
 };
+
+

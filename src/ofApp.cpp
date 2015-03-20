@@ -9,6 +9,7 @@ void ofApp::guiSetup() {
     
     transcodeToggle.addListener(this,&ofApp::buttonPressed);
     proresToggle.addListener(this,&ofApp::buttonPressed);
+    quietToggle.addListener(this,&ofApp::buttonPressed);
     
 	gui.setup(); // most of the time you don't need a name
     gui.loadFont("Roboto-Gui.ttf", 10);
@@ -40,6 +41,10 @@ void ofApp::guiSetup() {
     proresToggle.setFillColor(ofColor(70,93,109));
     proresToggle.setTextColor(ofColor(255));
     proresToggle.setBackgroundColor(ofColor(16,22,26));
+
+    quietToggle.setFillColor(ofColor(70,93,109));
+    quietToggle.setTextColor(ofColor(255));
+    quietToggle.setBackgroundColor(ofColor(16,22,26));
     
     bitrateSlider.setFillColor(ofColor(70,93,109));
     bitrateSlider.setTextColor(ofColor(255));
@@ -62,6 +67,7 @@ void ofApp::guiSetup() {
     
 	gui.add(transcodeToggle.setup("Transcode", true));
 	gui.add(proresToggle.setup("H264/MP4 encoding", false));
+	gui.add(quietToggle.setup("Export Audio", true));
     
     gui.add(acThresholdSlider.setup("Autocut threshold", 120, 0, 255));
     gui.add(acMinSlider.setup("Autocut minimum frames", 5, 0, 255));
@@ -174,6 +180,7 @@ void ofApp::onFileProcessed(ofxVideoSlicer::endEvent & ev) {
 void ofApp::buttonPressed(bool & toggle) {
     ffmpeg.setCodec(proresToggle ? "prores" : "h264");
     ffmpeg.setTranscode(transcodeToggle);
+    ffmpeg.setAudio(quietToggle);
     
 	transcodeToggle.setName(transcodeToggle?"Transcode":"Keep Original");
 	proresToggle.setName(proresToggle?"Prores/MOV encoding":"H264/MP4 encoding");

@@ -139,6 +139,7 @@ class ofApp : public ofBaseApp{
         void buttonPressed(bool & toggle);
         ofxToggle    transcodeToggle;
         ofxToggle    proresToggle;
+        ofxToggle    quietToggle;
         ofxIntSlider bitrateSlider;
         ofxIntSlider widthSlider;
         ofxIntSlider acThresholdSlider;

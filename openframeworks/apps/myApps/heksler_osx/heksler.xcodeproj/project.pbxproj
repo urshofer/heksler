@@ -1988,17 +1988,7 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_50)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_51)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_52)",
-					/Users/urshofer/Downloads/of_v0.8.4_osx_release/addons/ofxOpenCv/libs/opencv/lib/osx,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/android/armeabi,
-					"/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/android/armeabi-v7a",
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/ios,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linux,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linux64,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linuxarmv6l,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linuxarmv7l,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/osx,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/vs,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/win_cb,
+					"/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)Debug";
 				WRAPPER_EXTENSION = app;
@@ -2093,17 +2083,7 @@
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_49)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_50)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_51)",
-					/Users/urshofer/Downloads/of_v0.8.4_osx_release/addons/ofxOpenCv/libs/opencv/lib/osx,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/android/armeabi,
-					"/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/android/armeabi-v7a",
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/ios,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linux,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linux64,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linuxarmv6l,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/linuxarmv7l,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/osx,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/vs,
-					/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/win_cb,
+					"/Users/urshofer/Documents/Work/Repositories/heksler/openframeworks/addons/ofxOpenCv/libs/opencv/lib/**",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;

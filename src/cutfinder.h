@@ -114,7 +114,7 @@ public:
         
         updateColorPics();
         
-        avg = (avgPixel(redDiff.getPixelsRef()) +  avgPixel(greenDiff.getPixelsRef()) + avgPixel(blueDiff.getPixelsRef())) / 3;
+        avg = (avgPixel(redDiff.getPixels()) +  avgPixel(greenDiff.getPixels()) + avgPixel(blueDiff.getPixels())) / 3;
 
         
         if (avg > autocut_threshold && fingerMovie.getCurrentFrame() - autocut_startframe > autocut_minlength) {

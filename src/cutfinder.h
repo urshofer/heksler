@@ -7,28 +7,48 @@ class cutfinder : public ofThread{
 private:
     
     bool autocut;
-    int autocut_direction, autocut_startframe, autocut_minlength, autocut_threshold;
-    ofVideoPlayer fingerMovie;
+    int autocut_direction, autocut_startframe, autocut_threshold;
+    ofVideoPlayer movie;
     ofxCvColorImage colorImg;
     ofxCvGrayscaleImage    redDiff, redBG,red;
     ofxCvGrayscaleImage    greenDiff, greenBG, green;
     ofxCvGrayscaleImage    blueDiff, blueBG, blue;
     int                    avg;
+    ofQTKitPlayer*         player;
+    string                 file;
 
 public:
+    
+    int lastfound;
 
     cutfinder(){
+        movie.setUseTexture(false);
+        player = new ofQTKitPlayer();
+        ofPtr <ofBaseVideoPlayer> ptr(player);
+        movie.setPlayer(ptr);
     }
     
-    void start(ofVideoPlayer &movie, int _autocut_direction, int _autocut_minlength, int _autocut_threshold){
+    void start(string _file, int _autocut_direction, int _autocut_threshold, int _autocut_startframe){
         autocut = true;
-        fingerMovie = movie;
-        if (!fingerMovie.isLoaded()) {
-            return;
+        if (file != _file) {
+            if (movie.isLoaded()) {
+                player->close();
+                cout << "unload old movie..." << endl;
+            }
+            player->loadMovie(_file, OF_QTKIT_DECODE_PIXELS_ONLY);
+            file = _file;
+            cout << "laod new movie movie..." << endl;
+        }
+        
+        
+        while (!movie.isLoaded()) {
+            ofSleepMillis(100);
+            cout << "Wait for Clip being loaded..." << endl;
         }
         autocut_direction = _autocut_direction;
-        autocut_minlength = _autocut_minlength;
         autocut_threshold = _autocut_threshold;
+        autocut_startframe = _autocut_startframe;
+        movie.setFrame(autocut_startframe);
         
         colorImg.setUseTexture(false);
         redDiff.setUseTexture(false);
@@ -40,13 +60,10 @@ public:
         blueDiff.setUseTexture(false);
         blueBG.setUseTexture(false);
         blue.setUseTexture(false);
-        
-        
-        autocut_startframe = fingerMovie.getCurrentFrame();
         startThread();
     }
     
-    void updateColorSize() {
+    void updateColorSize(ofVideoPlayer &fingerMovie) {
         if (colorImg.getWidth() != fingerMovie.getWidth() || colorImg.getHeight() != fingerMovie.getHeight()) {
             colorImg.allocate(fingerMovie.getWidth(),fingerMovie.getHeight());
             red.allocate(fingerMovie.getWidth(),fingerMovie.getHeight());
@@ -76,7 +93,7 @@ public:
     
     //
     
-    void updateColorPics() {
+    void updateColorPics(ofVideoPlayer &fingerMovie) {
         colorImg.setFromPixels(fingerMovie.getPixelsRef());
         colorImg.convertToGrayscalePlanarImages(red, green, blue);
         
@@ -95,50 +112,65 @@ public:
     }
     
     
-    bool updateSync(ofVideoPlayer &movie, int _autocut_direction, int _autocut_minlength, int _autocut_threshold, int _autocut_startframe) {
-        fingerMovie = movie;
-        autocut_startframe = _autocut_startframe;
+    bool updateSync(ofVideoPlayer &fingerMovie, int _autocut_direction, int _autocut_threshold) {
         autocut_direction  = _autocut_direction;
-        autocut_minlength  = _autocut_minlength;
         autocut_threshold  = _autocut_threshold;
-        updateColorSize();
-        return update();
+        updateColorSize(fingerMovie);
+        return update(fingerMovie);
     }
     
-    bool update(){
+    int state() {
+        ofScopedLock lock(mutex);
+        return lastfound;
+    }
+    
+    bool update(ofVideoPlayer &fingerMovie){
         
         //do we have a new frame?
-
-        fingerMovie.setFrame(fingerMovie.getCurrentFrame()+autocut_direction);
+        int _f = fingerMovie.getCurrentFrame()+autocut_direction;
+        fingerMovie.setFrame(_f);
         fingerMovie.update();
         
-        updateColorPics();
+        updateColorPics(fingerMovie);
         
-        avg = (avgPixel(redDiff.getPixels()) +  avgPixel(greenDiff.getPixels()) + avgPixel(blueDiff.getPixels())) / 3;
+        avg = (avgPixel(redDiff.getPixelsRef()) +  avgPixel(greenDiff.getPixelsRef()) + avgPixel(blueDiff.getPixelsRef())) / 3;
 
         
-        if (avg > autocut_threshold && fingerMovie.getCurrentFrame() - autocut_startframe > autocut_minlength) {
-            return true;
-        }
-        
-        if (isThreadRunning() && autocut && fingerMovie.getCurrentFrame()<fingerMovie.getTotalNumFrames()-1) {
-            update();
+        if (isThreadRunning() && autocut) {
+            lastfound = _f;
+            if (avg > autocut_threshold) {
+                cout << "FOUND" << lastfound << endl;
+                return true;
+            }
+            if (_f < fingerMovie.getTotalNumFrames()-1) {
+                update(fingerMovie);
+            }
+            else {
+                cout << "NO CUT FOUND. REACHED END OF MOVIE" << endl;                
+                lastfound = 0;
+                return false;
+            }
         }
         else {
-            return false;
+            if (avg > autocut_threshold) {
+                lastfound = _f;
+                return true;
+            }
+            else {
+                return false;
+            }
         }
-            
     }
     
     void stop(){
+        autocut = false;
     }
     
 
     void threadedFunction(){
-        fingerMovie.setUseTexture(false);
-        updateColorSize();
-        update();
-        fingerMovie.setUseTexture(true);
+        updateColorSize(movie);
+        update(movie);
+        autocut = false;
     }
     
     

@@ -78,10 +78,10 @@ public:
     void threadedFunction(){
         while (isThreadRunning()) {
             Json::Reader getdata;
-            cout << "Trying to load keywords..." << apiurl << "/Load/" << sessionid << "/target" << endl;
+//            cout << "Trying to load keywords..." << apiurl << "/Load/" << sessionid << "/target" << endl;
             Json::Value _kw;
             if (getdata.parse(curlConnect(apiurl + "/Load/" + sessionid + "/target", ""), _kw )) {
-                cout << "Loaded keywords..." << endl;
+//                cout << "Loaded keywords..." << endl;
                 if (lock()) {
                     keywords = _kw;
                     unlock();

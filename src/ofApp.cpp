@@ -6,12 +6,15 @@ void ofApp::guiSetup() {
 	widthSlider.addListener(this, &ofApp::widthChanged);
     acThresholdSlider.addListener(this, &ofApp::acThresholdChanged);
     acMinSlider.addListener(this, &ofApp::acMinChanged);
+    acMaxSlider.addListener(this, &ofApp::acMaxChanged);
     
     transcodeToggle.addListener(this,&ofApp::buttonPressed);
     proresToggle.addListener(this,&ofApp::buttonPressed);
+    autotaggerToggle.addListener(this,&ofApp::autotaggerPressed);
     quietToggle.addListener(this,&ofApp::buttonPressed);
     
-	gui.setup(); // most of the time you don't need a name
+	gui.setup("Settings","gui.xml",10,10); // most of the time you don't need a name
+
     gui.loadFont("Roboto-Gui.ttf", 10);
     font.loadFont("Roboto-Gui.ttf", 15);
     fontlarge.loadFont("Roboto-Gui.ttf", 45);
@@ -42,6 +45,10 @@ void ofApp::guiSetup() {
     proresToggle.setTextColor(ofColor(255));
     proresToggle.setBackgroundColor(ofColor(16,22,26));
 
+    autotaggerToggle.setFillColor(ofColor(70,93,109));
+    autotaggerToggle.setTextColor(ofColor(255));
+    autotaggerToggle.setBackgroundColor(ofColor(16,22,26));
+
     quietToggle.setFillColor(ofColor(70,93,109));
     quietToggle.setTextColor(ofColor(255));
     quietToggle.setBackgroundColor(ofColor(16,22,26));
@@ -61,16 +68,25 @@ void ofApp::guiSetup() {
     acMinSlider.setFillColor(ofColor(70,93,109));
     acMinSlider.setTextColor(ofColor(255));
     acMinSlider.setBackgroundColor(ofColor(16,22,26));
+
+    acMaxSlider.setFillColor(ofColor(70,93,109));
+    acMaxSlider.setTextColor(ofColor(255));
+    acMaxSlider.setBackgroundColor(ofColor(16,22,26));
     
     gui.add(bitrateSlider.setup("Output bitrate", 500, 100, 5000));
     gui.add(widthSlider.setup("Output width", 640, 100, 2000));
     
 	gui.add(transcodeToggle.setup("Transcode", true));
-	gui.add(proresToggle.setup("H264/MP4 encoding", false));
+	gui.add(proresToggle.setup("Prores enabled (H264 standard)", false));
 	gui.add(quietToggle.setup("Export Audio", true));
     
     gui.add(acThresholdSlider.setup("Autocut threshold", 120, 0, 255));
-    gui.add(acMinSlider.setup("Autocut minimum frames", 5, 0, 255));
+    gui.add(acMinSlider.setup("Autocut minimum frames", 10, 10, 250));
+    gui.add(acMaxSlider.setup("Autocut maximum frames", 125, 10, 250));
+    
+	gui.add(autotaggerToggle.setup("Autotagging", true));
+    gui.loadFromFile("gui.xml");
+
 }
 
 //--------------------------------------------------------------
@@ -80,6 +96,17 @@ void ofApp::setup(){
     ofSetDataPathRoot("../Resources/data/");
 #endif
 
+    autotagger = true;
+    
+    /* XML Settings */
+	XML.loadFile("serversettings.xml");
+	string user	= XML.getValue("USER", __USER__);
+	string pass	= XML.getValue("PASS", __PASS__);
+	apiurl	= XML.getValue("URL", __API__);
+    cs_api = XML.getValue("CSAPI", "");
+    autotagger_path = XML.getValue("AT_PATH", "");
+    autotagger_file = XML.getValue("AT_FILE", "");
+    autotagger_nlp = XML.getValue("AT_NLP", "");
     
     
 	ofBackground(19,30,37);
@@ -87,9 +114,14 @@ void ofApp::setup(){
     frameByframe=false;
     shift=false;
     caps = false;
-    autocut_threshold = 120;
-    autocut_minlength = 10;
-    ofSetFrameRate(200);
+    autocut_threshold = 150;
+    autocut_minlength = 20;
+    autocut_maxlength = 200;
+
+    in = -1;
+    out = -1;
+    
+    ofSetFrameRate(100);
     guiVisible = false;
 
     guiSetup();
@@ -114,17 +146,6 @@ void ofApp::setup(){
     blueBG.allocate(320,240);
     blueDiff.allocate(320,240);
     
-    
-	/* Load Configuration */
-    
-    
-    /* XML Settings */
-    ofxXmlSettings XML;
-	XML.loadFile("serversettings.xml");
-	string user	= XML.getValue("USER", __USER__);
-	string pass	= XML.getValue("PASS", __PASS__);
-	apiurl	= XML.getValue("URL", __API__);
-    
 	/* Logging in at the API */
     
     while (!login(user, pass)) {
@@ -140,8 +161,6 @@ void ofApp::setup(){
 
     KO.start(apiurl, sessionid);
 
-
-    ofAddListener(fm.formResponseEvent, this, &ofApp::newResponse);
     
 }
 
@@ -160,20 +179,101 @@ bool ofApp::login(string _pass, string _user) {
     }
 }
 
-void ofApp::newResponse(HttpFormResponse &response){
-	printf("form '%s' returned : %s\n", response.url.c_str(), response.ok ? "OK" : "KO" );
-}
 
 
 void ofApp::onFileProcessed(ofxVideoSlicer::endEvent & ev) {
-    cout << ev.file << " processed with the message " << ev.message;
+    
+    cout << "[UPLOAD] starting" << endl;
+
+    
+    /* UPLOAD STUFF */
+    HttpFormManager fm, cf;
+    cf.setHeader("Authorization", cs_api);
+    fm.setTimeOut(60);
+    
 	HttpForm f = HttpForm( apiurl + "/StoreFileAnnotaded/" + sessionid );
-	//form field name, file name, mime type
 	f.addFile("url", ev.file, "movie/mpeg");
     f.addFormField("meta", ev.message);
-	fm.submitForm( f, false );
+
+    cout << "[UPLOAD] autotagger init" << endl;
+    long init_time = ofGetElapsedTimeMillis();
+    
+    if (autotagger) {
+        // Loading Tags from CloudSight by analyzing ev.jpg
+        //ev.jpg
+        HttpForm fc = HttpForm( "http://api.cloudsightapi.com/image_requests" );
+        fc.addFile("image_request[image]", ev.jpg, "image/jpeg");
+        fc.addFormField("image_request[locale]", "en-EN");
+        HttpFormResponse response = cf.submitFormBlocking( fc );
+//        printf("form '%s' returned : %s\n", response.url.c_str(), response.responseBody.c_str() );
+        
+        Json::Reader getdata;
+        Json::Value _kw;
+        getdata.parse(response.responseBody, _kw );
+        // Get JSON Token
+        if (_kw["token"].asString() != "") {
+            Json::Reader getanalysis;
+            Json::Value _analysis;
+
+            // Poll Cloudsight until Response is okay
+
+            do {
+                getanalysis.parse(curlConnect(
+                    "https://api.cloudsightapi.com/image_responses/" + _kw["token"].asString(),
+                    "",
+                    "Authorization",
+                    cs_api
+                    ), _analysis
+                );
+                if (_analysis["status"].asString() == "not completed") {
+                    ofSleepMillis(1000);
+                }
+            } while (_analysis["status"].asString() == "not completed");
+
+            // Skipped, i.e. offensive
+            string nlp_string = "";
+            if (_analysis["status"].asString() == "skipped") {
+ //               cout << "SKIPPED:" << _analysis["reason"].asString() << endl;
+                nlp_string = _analysis["reason"].asString();
+            }
+            if (_analysis["status"].asString() == "completed") {
+   //             cout << "KEYWORDS:" << _analysis["name"].asString() << endl;
+                nlp_string = _analysis["name"].asString();
+            }
+            nlp_string = "{\"dimension\": \"" + autotagger_nlp + "\",\"string\": \"" + nlp_string + "\"}";
+   //         cout << nlp_string << endl;
+            f.addFormField("nlp", nlp_string);
+        }
+    }
+
+    cout << "[UPLOAD] autotagger done (" << ofToString(ofGetElapsedTimeMillis() - init_time) << ")" << endl;
+    
+    // Upload to Server
+	HttpFormResponse response = fm.submitFormBlocking( f );
+	printf("[UPLOAD] stored: %s\n         Status: %s\n         took:%s", response.url.c_str(), response.ok ? "OK" : "KO", ofToString(ofGetElapsedTimeMillis() - init_time).c_str() );
 }
 
+
+
+//--------------------------------------------------------------
+void ofApp::autotaggerPressed(bool & toggle) {
+	/* Autotagger Stuff */
+    if (!autotagger) {
+        cs_api = ofSystemTextBoxDialog("Api Key for CloudSight\nRecognition API:", cs_api);
+        autotagger_path = ofSystemTextBoxDialog("Dimension for /Path/Parts/\nAuto Tagging:", autotagger_path);
+        autotagger_file = ofSystemTextBoxDialog("Dimension for _File_Name_\nAuto Tagging:", autotagger_file);
+        autotagger_nlp = ofSystemTextBoxDialog("Dimension for\nNatural Language Processing:", autotagger_nlp);
+        XML.setValue("CSAPI", cs_api);
+        XML.setValue("AT_PATH", autotagger_path);
+        XML.setValue("AT_FILE", autotagger_file);
+        XML.setValue("AT_NLP", autotagger_nlp);
+        XML.saveFile();
+    }
+    
+    autotagger = autotaggerToggle;
+    gui.saveToFile(ofToDataPath("gui.xml"));
+    
+}
 
 
 //--------------------------------------------------------------
@@ -181,27 +281,35 @@ void ofApp::buttonPressed(bool & toggle) {
     ffmpeg.setCodec(proresToggle ? "prores" : "h264");
     ffmpeg.setTranscode(transcodeToggle);
     ffmpeg.setAudio(quietToggle);
-    
-	transcodeToggle.setName(transcodeToggle?"Transcode":"Keep Original");
-	proresToggle.setName(proresToggle?"Prores/MOV encoding":"H264/MP4 encoding");
-    
     cout << "Transcode: " << transcodeToggle << " Prores: " << proresToggle << endl;
+    gui.saveToFile(ofToDataPath("gui.xml"));
 }
 
 //--------------------------------------------------------------
 void ofApp::acMinChanged(int & min){
     autocut_minlength = min;
+    if (min > autocut_maxlength) {
+        acMaxChanged(min);
+    }
+    gui.saveToFile(ofToDataPath("gui.xml"));
 }
 
+//--------------------------------------------------------------
+void ofApp::acMaxChanged(int & max){
+    autocut_maxlength = max;
+    gui.saveToFile(ofToDataPath("gui.xml"));
+}
 
 //--------------------------------------------------------------
 void ofApp::acThresholdChanged(int & thresh){
     autocut_threshold = thresh;
+    gui.saveToFile(ofToDataPath("gui.xml"));
 }
 
 //--------------------------------------------------------------
 void ofApp::bitrateChanged(int & rate){
     ffmpeg.setBitrate(rate);
+    gui.saveToFile(ofToDataPath("gui.xml"));
 }
 
 //--------------------------------------------------------------
@@ -210,6 +318,7 @@ void ofApp::widthChanged(int & width){
     // Round width
     int targetH = fingerMovie.getHeight() / fingerMovie.getWidth() * width;
     ffmpeg.setSize(width, targetH);
+    gui.saveToFile(ofToDataPath("gui.xml"));
 }
 
 int ofApp::avgPixel(ofPixelsRef & px) {
@@ -263,29 +372,54 @@ void ofApp::updateColorPics() {
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    if (fingerMovie.isLoaded()) {
+        if (caps) {
+            if (!cutter.isThreadRunning() && autocut){
+                if (cutter.lastfound != 0) {
+                    int _diff = abs(cutter.lastfound - in);
+                    fingerMovie.setFrame(cutter.lastfound);
+                    
+                    // Set In Point: If not set or diff to small or too big
+                    
+                    if (in == -1 || _diff > autocut_maxlength || _diff < autocut_minlength) {
+                        in = cutter.lastfound;
+                        in_f = fingerMovie.getPosition()*fingerMovie.getDuration();
+                        out = -1;
 
-    if (caps) {
-        if (!cutter.isThreadRunning()){
-            if (autocut) {
-                autocut = false;
-                fingerMovie.setFrame(fingerMovie.getCurrentFrame()-1);
-                fingerMovie.setFrame(fingerMovie.getCurrentFrame()+1);
+                    }
+                    
+                    // Slice Complete: Could send to slicer here.
+                    
+                    else {
+                        out = cutter.lastfound;
+                        // HEKSEL
+                        if (autocut_maxlength > (out - in)) {
+                            cout << "Start FFMPEG Task @" << in << " to " << out << endl;
+                            ffmpeg.addTask(currentFile, in_f, (out - in), json_encoded);
+                        }
+                        // Set out to new in
+                        in = out;
+                        in_f = fingerMovie.getPosition()*fingerMovie.getDuration();
+                    }
+                    // ReStart Task
+                    cout << "Restart Cutter Task @" << in << endl;
+                    cutter.start(fingerMovie.getMoviePath(), 1, autocut_threshold, in);
+
+                }
+                else {
+                    // Returns true if there's a movie loaded, so autocut will continue
+                    autocut = loadMovie();
+                }
             }
-            fingerMovie.update();
-            if (fingerMovie.isFrameNew()) {
-                updateColorPics();
-            }
-        }
-    }
-    else {
-        if (autocut) {
-            autocut = !cutter.updateSync(fingerMovie, autocut_direction, autocut_minlength, autocut_threshold, autocut_startframe);
         }
         else {
-            fingerMovie.update();
-        }
-        if (fingerMovie.isFrameNew()) {
-            updateColorPics();
+            // Regular Movie Update if not done by the autocutter
+            if (!cmnd) {
+                fingerMovie.update();
+                if (fingerMovie.isFrameNew()) {
+                    updateColorPics();
+                }
+            }
         }
     }
 }
@@ -301,7 +435,7 @@ void ofApp::draw(){
     ofSetHexColor(0xFFFFFF);
     font.drawString("Drag Video here", 25+(640/2)-(124/2), 58+240);
 
-    if (!cutter.isThreadRunning()){
+    if (!caps){
         if (fingerMovie.isLoaded()) {
             fingerMovie.draw(10,60 + ((480 - (640 / fingerMovie.getWidth() * fingerMovie.getHeight()))/2), 640, 640 / fingerMovie.getWidth() * fingerMovie.getHeight());
             ofSetHexColor(0xFF0000);
@@ -315,13 +449,13 @@ void ofApp::draw(){
         }
     }
     else {
-        ofSetHexColor(0x333333);
-        ofRect(10,60,640,480);
-        ofSetHexColor(0xFFFFFF);
-        font.drawString("Searching next cut", 25+(640/2)-(124/2), 58+240);
-    }
-
-    if (caps) {
+        if (cutter.isThreadRunning()) {
+            ofSetHexColor(0x333333);
+            ofRect(10,60,640,480);
+            ofSetHexColor(0xFFFFFF);
+            font.drawString("Searching next cut", 25+(640/2)-(124/2), 58+240);
+            font.drawString(ofToString(cutter.state()), 25+(640/2)-(124/2), 58+260);
+        }
         ofPushStyle();
         ofSetLineWidth(4);
         ofNoFill();
@@ -330,42 +464,63 @@ void ofApp::draw(){
         ofPopStyle();
     }
     
-    ofSetColor(255, 255, 255, 255);
-    bg.draw(0,0);
+    ofPushStyle();
+        ofSetColor(255, 255, 255, 255);
+        bg.draw(0,0);
 
-    ofSetHexColor(0x222222);
-    int zeile = 77; int zeileoffset = 69;
+        ofSetHexColor(0x222222);
+        int zeile = 77; int zeileoffset = 69;
 
-    font.drawString("Current Frame",888,zeile);
-    fontlarge.drawString(ofToString(fingerMovie.getCurrentFrame()),888,zeile+37);
-    zeile += zeileoffset;
-    font.drawString("Total Frames",888,zeile);
-    fontlarge.drawString(ofToString(fingerMovie.getTotalNumFrames()),888,zeile+37);
-    zeile += zeileoffset;
-    font.drawString("Position",888,zeile);
-    fontlarge.drawString(ofToString(fingerMovie.getPosition()*fingerMovie.getDuration(),1),888,zeile+37);
-    zeile += zeileoffset;
-    font.drawString("Duration",888,zeile);
-    fontlarge.drawString(ofToString(fingerMovie.getDuration(),1),888,zeile+37);
-    zeile += zeileoffset;
-    font.drawString("In",888,zeile);
-    font.drawString("Out",888,zeile+zeileoffset);
-    if (rec) {
-        ofPushStyle();
-        ofSetHexColor(0xff0000);
-        ofCircle(30, 80, 10);
-        ofPopStyle();
+        font.drawString("Current Frame",888,zeile);
+        fontlarge.drawString(ofToString(fingerMovie.getCurrentFrame()),888,zeile+37);
+        zeile += zeileoffset;
+        font.drawString("Total Frames",888,zeile);
+        fontlarge.drawString(ofToString(fingerMovie.getTotalNumFrames()),888,zeile+37);
+        zeile += zeileoffset;
+        font.drawString("Position",888,zeile);
+        fontlarge.drawString(ofToString(fingerMovie.getPosition()*fingerMovie.getDuration(),1),888,zeile+37);
+        zeile += zeileoffset;
+        font.drawString("Duration",888,zeile);
+        fontlarge.drawString(ofToString(fingerMovie.getDuration(),1),888,zeile+37);
+        zeile += zeileoffset;
+        font.drawString("In",888,zeile);
+        font.drawString("Out",888,zeile+zeileoffset);
         fontlarge.drawString(ofToString(in),888,zeile+37);
         fontlarge.drawString(ofToString(out),888,zeile+zeileoffset+37);
-        out = fingerMovie.getCurrentFrame();
+        zeile += (zeileoffset * 2);
+        font.drawString("Pending" ,888, zeile);
+        fontlarge.drawString(ofToString(ffmpeg.processingQueueSize()),888,zeile+37);
+    ofPopStyle();
+
+    if (in >= 0) {
+        ofPushStyle();
+        ofSetColor(255, 255, 255, 255);
+        img_in.draw(20, 485 - img_in.getHeight()/5, img_in.getWidth()/5, img_in.getHeight()/5);
+        ofSetHexColor(0xffffff);
+        ofSetLineWidth(2);
+        ofNoFill();
+        ofRect(20, 485 - img_in.getHeight()/5, img_in.getWidth()/5, img_in.getHeight()/5);
+        ofPopStyle();
     }
-    else {
-        fontlarge.drawString("0",888,zeile+37);
-        fontlarge.drawString("0",888,zeile+zeileoffset+37);
+    if (out >= 0) {
+        ofPushStyle();
+        ofSetColor(255, 255, 255, 255);
+        img_out.draw(650 - 10 - (img_out.getWidth()/5) , 485 - img_out.getHeight()/5, img_out.getWidth()/5, img_out.getHeight()/5);
+        ofSetHexColor(0xffffff);
+        ofSetLineWidth(2);
+        ofNoFill();
+        ofRect(650 - 10 - (img_out.getWidth()/5) , 485 - img_out.getHeight()/5, img_out.getWidth()/5, img_out.getHeight()/5);
+        ofPopStyle();
     }
-    zeile += (zeileoffset * 2);
-    font.drawString("Pending" ,888, zeile);
-    fontlarge.drawString(ofToString(ffmpeg.processingQueueSize()),888,zeile+37);
+
+    if (rec) {
+        ofPushStyle();
+        ofSetColor(0, 0, 0, 128);
+        ofRect(158, 485 - img_out.getHeight()/5, 345, img_out.getHeight()/5);
+        ofSetColor(0, 255, 0, 255);
+        fontlarge.drawString("Press Enter to store",160,485 - img_out.getHeight()/5 + 50);
+        ofPopStyle();
+    }
     
     
 
@@ -413,14 +568,16 @@ void ofApp::drawKeywords() {
             }
             // Draw Coord Points
             map_vector::const_iterator mactive = maps.find(dim);
-            ofSetHexColor(0xFF0000);
             ofRectangle clearbutton = font.getStringBoundingBox("Clear", 0, 0);
+            ofSetHexColor(0x992222);
+            ofRect(x+sizeX-7-clearbutton.width, y+3, clearbutton.width+4, clearbutton.height+4);
+            ofSetHexColor(0xFF0000);
             font.drawString("Clear", x+sizeX-5-clearbutton.width, y+15);
             int coordCount = 0;
 			if(mactive != maps.end())
 			{
                 for(std::vector< ofPoint >::const_iterator qactive = mactive->second.coords.begin(); qactive != mactive->second.coords.end(); ++qactive) {
-                    ofCircle(x+(sizeX/100*qactive->x)-1, y+(sizeY/100*qactive->y)-1, 2);
+                    ofCircle(x+(sizeX/100*qactive->x)-3, y+(sizeY/100*qactive->y)-3, 6);
                     if (coordCount>0) {
                         json_encoded += ",";
                     }
@@ -430,9 +587,29 @@ void ofApp::drawKeywords() {
 			}
             else {
                 _keymap _k;
+                std::vector < _keywords > _kw;
+                
+                for( Json::ValueIterator element = keywords[dim]["Keywords"].begin() ; element != keywords[dim]["Keywords"].end() ; element++ ) {
+                    _keywords __kw;
+                    __kw.first = element.key().asString();
+                    __kw.second = ofPoint(
+                                    ofToFloat(keywords[dim]["Keywords"][__kw.first][0].asString()),
+                                    ofToFloat(keywords[dim]["Keywords"][__kw.first][1].asString())
+                    );
+                    _kw.push_back(__kw);
+                }
+                
+                
+                
                 _k.bounds = ofRectangle(x, y,sizeX,sizeY);
                 _k.clearbutton = font.getStringBoundingBox("Clear", x+sizeX-5-clearbutton.width, y+15);
+                _k.clearbutton.width  += 4;
+                _k.clearbutton.height += 4;
+                _k.clearbutton.x -= 2;
+                _k.clearbutton.y -= 2;
                 _k.coords.clear();
+                _k.keywords = _kw;
+                        
                 maps[dim] = _k;
                 cout << "Added " << dim << endl;
             }
@@ -449,34 +626,36 @@ void ofApp::drawKeywords() {
 
 //--------------------------------------------------------------
 void ofApp::keyPressed  (int key){
+  
     if (!cutter.isThreadRunning()) {
         switch(key){
-            case -1:
-                caps = true;
+            case OF_KEY_TAB:
+                caps = !caps;
                 break;
             case OF_KEY_SHIFT:
                 shift = true;
                 break;
+            case OF_KEY_COMMAND:
+                cmnd = true;
+            case '1':
+                if (in >= 0) fingerMovie.setFrame(in);
+                break;
+            case '2':
+                if (out >= 0) fingerMovie.setFrame(out);
+                break;
             case ' ':
                 frameByframe=!frameByframe;
                 fingerMovie.setPaused(frameByframe);
-                if (!cutter.isThreadRunning()) {
-                    autocut = false;
-                }
             break;
             case OF_KEY_LEFT:
                 if (shift) {
                     fingerMovie.setFrame(fingerMovie.getCurrentFrame()-10);
                 }
-                else if (cmnd) {
-                    autocut = true;
-                    autocut_direction = -1;
-                    autocut_startframe = fingerMovie.getCurrentFrame();
-                    if (caps) {
-                        cutter.start(fingerMovie, autocut_direction, autocut_minlength, autocut_threshold);
-                    }
+                else if (cmnd && !autocut_found) {
+                    autocut_found = cutter.updateSync(fingerMovie, -1, autocut_threshold);
+                    updateColorPics();
                 }
-                else {
+                else if (!cmnd) {
                     fingerMovie.previousFrame();
                 }
             break;
@@ -484,52 +663,59 @@ void ofApp::keyPressed  (int key){
                 if (shift) {
                     fingerMovie.setFrame(fingerMovie.getCurrentFrame()+10);
                 }
-                else if (cmnd) {
-                    autocut = true;
-                    autocut_direction = 1;
-                    autocut_startframe = fingerMovie.getCurrentFrame();
-                    if (caps) {
-                        cutter.start(fingerMovie, autocut_direction, autocut_minlength, autocut_threshold);
-                    }
+                else if (cmnd && !autocut_found) {
+                    autocut_found = cutter.updateSync(fingerMovie, 1, autocut_threshold);
+                    updateColorPics();
                 }
-                else {
+                else if (!cmnd)  {
                     fingerMovie.nextFrame();
                 }
             break;
             case OF_KEY_UP:
-                rec=!rec;
-                if (rec) {
-                    in = fingerMovie.getCurrentFrame();
-                    in_f = fingerMovie.getPosition()*fingerMovie.getDuration();
-                    out = in;
-                }
+                in = fingerMovie.getCurrentFrame();
+                img_in.loadData(fingerMovie.getPixels(), fingerMovie.getWidth(), fingerMovie.getHeight(), GL_RGB);
+                in_f = fingerMovie.getPosition()*fingerMovie.getDuration();
+                rec = out > in;
             break;
             case OF_KEY_DOWN:
-                if (fingerMovie.getCurrentFrame()>in && rec) {
-                    out = fingerMovie.getCurrentFrame();
-                    ffmpeg.addTask(currentFile, in_f, (out - in + 2), json_encoded);
-                }
-                rec = false;
+                out = fingerMovie.getCurrentFrame();
+                img_out.loadData(fingerMovie.getPixels(), fingerMovie.getWidth(), fingerMovie.getHeight(), GL_RGB);
+                rec = out > in;
                 break;
             break;
+            case OF_KEY_RETURN:
+                if (caps) {
+                    autocut = true;
+                    cout << "Start Cutter Task @0" << endl;
+                    cutter.start(fingerMovie.getMoviePath(), 1, autocut_threshold, 0);
+                }
+                else if (rec) {
+                    ffmpeg.addTask(currentFile, in_f, (out - in), json_encoded);
+                    rec = false;
+                    out = in = 0;
+                }
+                break;
             case ',':
                 fingerMovie.setFrame(0);
-                if (!cutter.isThreadRunning()) {
-                    autocut = false;
-                }
                 break;
             case '.':
                 fingerMovie.setFrame(fingerMovie.getTotalNumFrames()-1);
-                if (!cutter.isThreadRunning()) {
-                    autocut = false;
-                }
                 break;
-            case OF_KEY_COMMAND:
-                cmnd = true;
             break;
         }
     }
-   }
+    else {
+        switch(key) {
+            case OF_KEY_RETURN:
+                if (caps) {
+                    cout << "Stop Cutter Task" << endl;
+                    autocut = false;
+                    cutter.stop();
+                }
+                break;
+        }
+    }
+}
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
@@ -539,12 +725,11 @@ void ofApp::keyReleased(int key){
             break;
         case OF_KEY_COMMAND:
             cmnd = false;
-            if (!cutter.isThreadRunning()) {
-                autocut = false;
-            }
+            autocut_found = false;
             break;
-        case -1:
-            caps = false;
+        case OF_KEY_LEFT:
+        case OF_KEY_RIGHT:
+            autocut_found = false;
             break;
     }
 }
@@ -560,15 +745,42 @@ void ofApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
     // Add marks if on keyword area
+    
+    
     for(map_vector::iterator mactive = maps.begin(); mactive != maps.end(); ++mactive) {
-        cout << "Check: " << mactive->first << endl;
+        //cout << "Check: " << mactive->first << endl;
+        
+        bool _found = false;
+        std::vector< ofPoint >::iterator qactive = mactive->second.coords.begin();
+        while (qactive != mactive->second.coords.end()) {
+
+            ofRectangle _test(mactive->second.bounds.x + (mactive->second.bounds.width / 100 * qactive->x) - 6, mactive->second.bounds.y + (mactive->second.bounds.height / 100 * qactive->y) - 6, 12, 12);
+
+            
+            
+            cout << _test.x << "/" << _test.y << " - " << x << "/" << y << endl;
+            
+            if(_test.inside(x,y))
+            {
+                // erase returns the new iterator
+              qactive = mactive->second.coords.erase(qactive);
+                _found = true;
+                cout << "----------------FOUND-----------------" <<  endl;
+            }
+            else
+            {
+                ++qactive;
+            }
+
+        }
+        
         if (mactive->second.bounds.inside(x,y)) {
             
             if (mactive->second.clearbutton.inside(x,y)) {
                 mactive->second.coords.clear();
                 cout << "Cleared" << endl;
             }
-            else {
+            else if (!_found){
                 cout << "Added: " << x << "/" << y << endl;
                 mactive->second.coords.push_back(ofPoint(100 / mactive->second.bounds.width * (x-mactive->second.bounds.x),100 / mactive->second.bounds.height * (y-mactive->second.bounds.y)));
             }
@@ -585,7 +797,7 @@ void ofApp::mousePressed(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-    cout << json_encoded << endl;
+//    cout << json_encoded << endl;
 }
 
 //--------------------------------------------------------------
@@ -599,17 +811,103 @@ void ofApp::gotMessage(ofMessage msg){
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
+void ofApp::dragEvent(ofDragInfo dragInfo){
+    files = dragInfo.files;
+    fileCount = 0;
+    loadMovie();
+}
+
+bool ofApp::loadMovie() {
     if (fingerMovie.isLoaded()) {
         fingerMovie.stop();
         fingerMovie.close();
+        img_out.clear();
+        img_out.allocate(1,1,GL_RGB);
+        img_in.clear();
+        img_in.allocate(1,1,GL_RGB);
     }
-    currentFile = dragInfo.files[0];
-	fingerMovie.loadMovie(currentFile);
-    frameByframe=true;
-    updateColorSize();
-    updateColorPics();
+    if (fileCount < files.size()) {
+        currentFile = files[fileCount];
+        ofFile file(ofToDataPath(currentFile));
+        bool isMovie = (file.getExtension() == "mov" || file.getExtension() == "mp4" || file.getExtension() == "avi" || file.getExtension() == "m4v");
 
+        fingerMovie.loadMovie(currentFile);
+        frameByframe=true;
+        if (isMovie) {
+            updateColorSize();
+            updateColorPics();
+        }
+        in = -1;
+        out = -1;
+        
+        if (autotagger) {
+            // ReSet KEywords
+            for(map_vector::iterator mactive = maps.begin(); mactive != maps.end(); ++mactive) {
+                mactive->second.coords.clear();
+            }
+            // Set Path Words
+            std::vector<string> pathinfo = ofSplitString(currentFile, "/");
+            string fName = pathinfo[pathinfo.size()-1];
+            pathinfo.pop_back();
+            syncKeywords(pathinfo, autotagger_path);
+            
+            // Set File Name Words
+            std::vector<string> fileinfo = ofSplitString(fName, "_");
+            fileinfo.pop_back();
+            syncKeywords(fileinfo, autotagger_file);
+        }
+        
+        // Movies: Directly Autocut if set
+        
+        
+        if (isMovie && caps && !cutter.isThreadRunning()) {
+            cout << "Import VIDEO" << endl;
+            autocut = true;
+            cutter.start(fingerMovie.getMoviePath(), 1, autocut_threshold, 0);
+        }
+        
+        fileCount++;
+
+        if (!isMovie && caps) {
+            cout << "Import AUDIO" << endl;
+            drawKeywords();
+            directUpload(currentFile, json_encoded);
+            loadMovie();
+        }
+        
+        return true;
+    }
+    return false;
+}
+
+void ofApp::directUpload(string file, string json) {
+    /* UPLOAD STUFF */
+    HttpFormManager fm;
+    fm.setTimeOut(60);
+	HttpForm f = HttpForm( apiurl + "/StoreFileAnnotaded/" + sessionid );
+	f.addFile("url", file, "movie/mpeg");
+    f.addFormField("meta", json);
+    // Upload to Server
+	HttpFormResponse response = fm.submitFormBlocking( f );
+	printf("Automatic Cinema Server\nStored : %s\nrStatus : %s\n", response.url.c_str(), response.ok ? "OK" : "KO" );
+}
+
+
+
+void ofApp::syncKeywords(std::vector<string> words, string dimension) {
+    for(std::vector<string>::iterator word = words.begin(); word != words.end(); ++word) {
+        cout << "Lookup: " << *word << endl;
+        // Check if Word exists in Keywords, then add the corresponding point in the coordinates
+        
+        for(map_vector::iterator mactive = maps.begin(); mactive != maps.end(); ++mactive) {
+            for(std::vector < _keywords >::iterator kactive = mactive->second.keywords.begin(); kactive != mactive->second.keywords.end(); ++kactive) {
+                if (kactive->first == *word && dimension == mactive->first) {
+                    cout << "Found: " << kactive->first << endl;
+                    mactive->second.coords.push_back(kactive->second);
+                }
+            }
+        }
+    }
 }
 
 void ofApp::exit() {

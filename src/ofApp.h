@@ -56,10 +56,13 @@ class ofApp : public ofBaseApp{
             return result;
         };
     
-        std::string curlConnect(string _url, string _post){
+        std::string curlConnect(string _url, string _post, string _customheader_name = "", string _customheader_value = ""){
             CURL *curl;
             static string buffer;
             buffer.clear();
+
+            struct curl_slist *list = NULL;
+
             curl = curl_easy_init();
             if(curl) {
                 curl_easy_setopt(curl, CURLOPT_URL, _url.c_str());
@@ -74,19 +77,29 @@ class ofApp : public ofBaseApp{
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writer);
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
                 curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3);
+                if (_customheader_name != "" && _customheader_value != "") {
+                    string _concat = _customheader_name + ":" + _customheader_value;
+                    list = curl_slist_append(list,  _concat.c_str() );
+                    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+                }
                 curl_easy_perform(curl);
                 curl_easy_cleanup(curl);
+                if (_customheader_name != "" && _customheader_value != "") {
+                    curl_slist_free_all(list); /* free the list again */
+                }
             }
             return buffer;
         }
 
-   
+    typedef std::pair < std::string, ofPoint > _keywords;
+    
+    
     struct _keymap
     {
-        ofRectangle     bounds;
-        ofRectangle     clearbutton;
-        std::vector < ofPoint > coords;
-
+        ofRectangle                 bounds;
+        ofRectangle                 clearbutton;
+        std::vector < ofPoint >     coords;
+        std::vector < _keywords >   keywords;
     };
     
     typedef std::map<std::string, _keymap > map_vector;
@@ -99,7 +112,7 @@ class ofApp : public ofBaseApp{
 		void update();
 		void draw();
         bool login(string _pass, string _user);
-		
+        bool loadMovie();
 		void keyPressed(int key);
 		void keyReleased(int key);
 		void mouseMoved(int x, int y );
@@ -113,18 +126,26 @@ class ofApp : public ofBaseApp{
         void guiSetup();
         void exit();
     
+        /* FILE HANDLING */
+        vector <string>     files;
+        string              currentFile;
+        int                 fileCount;
+    
         /* VIDEO */
     
 		ofVideoPlayer 		fingerMovie;
 		bool                frameByframe;
-        bool                shift, cmnd, autocut;
+        bool                shift, cmnd, autocut_found, autocut;
         bool                rec, caps;
         float               in_f;
-        int                 in, out, autocut_direction, autocut_threshold, autocut_startframe, autocut_minlength;
-        string              currentFile;
+        int                 autocut_direction, autocut_threshold, autocut_startframe, autocut_minlength, autocut_maxlength;
+        signed int          in, out;
         ofxVideoSlicer      ffmpeg;
         cutfinder           cutter;
         void                onFileProcessed(ofxVideoSlicer::endEvent & ev);
+        void                uploadToACServer(ofxVideoSlicer::endEvent & ev);
+        ofTexture           img_in, img_out;
+
 
         /* FONT */
     
@@ -136,18 +157,27 @@ class ofApp : public ofBaseApp{
         void widthChanged(int & width);
         void acThresholdChanged(int & thresh);
         void acMinChanged(int & thresh);
+        void acMaxChanged(int & thresh);
         void buttonPressed(bool & toggle);
+        void autotaggerPressed(bool & toggle);
+    
+        void directUpload(string file, string json);
+
+    
         ofxToggle    transcodeToggle;
         ofxToggle    proresToggle;
         ofxToggle    quietToggle;
+        ofxToggle    autotaggerToggle;
         ofxIntSlider bitrateSlider;
         ofxIntSlider widthSlider;
         ofxIntSlider acThresholdSlider;
         ofxIntSlider acMinSlider;
+        ofxIntSlider acMaxSlider;
         ofxPanel    gui;
         ofImage     bg;
         bool        guiVisible;
-    
+        ofxXmlSettings XML;
+
         /* OPENCV */
 
         void updateColorSize();
@@ -163,11 +193,10 @@ class ofApp : public ofBaseApp{
         void         drawKeywords();
         string       json_encoded;
         keywordloader KO;
-    
-        /* UPLOAD STUFF */
-        void newResponse(HttpFormResponse &response);
-        HttpFormManager fm;
-    
+        void syncKeywords(std::vector<string> , string dimension);
+        bool autotagger;
+        string cs_api, autotagger_path, autotagger_file, autotagger_nlp;
+   
 };
 
 
